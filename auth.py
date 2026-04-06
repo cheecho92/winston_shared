@@ -1,43 +1,12 @@
 #!/usr/bin/env python3.13
 import json
 import requests
-import string
 import os
-import secrets
-import subprocess
 from urllib.parse import urlencode
-from auth_handler import RedirectHandler
-from http.server import HTTPServer
-
-
-# Generates a randomized state string
-def random_string_generator():
-    alphabet = string.ascii_letters + string.digits
-    state_string = ''.join(secrets.choice(alphabet) for i in range(33))
-    return state_string
-
-
-# Open a private browser session for the OAuth session
-def open_private_browser(browser, url):
-    subprocess.Popen([browser, '--private-window', url])
-
-
-# Generates a temp local webserver to handle redirect uris using HTTPServer and auth_handler
-# Might want to revisit to apply a nonce
-def retrieve_redirect_code(browser, uri, host, port, state):
-    server = HTTPServer((host, port), RedirectHandler)
-    server.state = state
-    open_private_browser(browser, uri)
-    server.handle_request()
-    code = server.code
-    server.server_close()
-    print("Server is closed.")
-    return code
 
 
 # Use the Config dataclass to create the auth and token links cleanly
-# Might want to revisit to apply a nonce
-def url_parser(config, uri, state):
+def url_parser(config, state):
     params = {
         "response_type": "code",
         "client_id": config.client_id,
@@ -45,7 +14,7 @@ def url_parser(config, uri, state):
         "scope": " ".join(config.scopes),
         "state": state,
     }
-    return f"{uri}?{urlencode(params)}"
+    return f"{config.auth_uri}?{urlencode(params)}"
 
 
 # Read the token JSON file as dict
@@ -76,13 +45,12 @@ def generate_headers(config):
         }
     
     return params
-    
 
-# Handles the initial token generation and refresh tokens depending on if the code argument is passed.
-def handle_tokens(config):
+
+# Handles token refresh or initial token exchange
+def handle_tokens(config, code=None):
     if os.path.exists(config.token_file):
         tokens = load_tokens(config)
-
         params = {
         "client_id": config.client_id,
         "client_secret": config.client_secret,
@@ -90,10 +58,6 @@ def handle_tokens(config):
         "refresh_token": tokens["refresh_token"]
         }
     else:
-        state_string = random_string_generator()
-        auth_uri = url_parser(config, config.auth_uri, state_string)
-        code = retrieve_redirect_code(config.browser, auth_uri, config.host, config.port, state_string)
-
         params = {
         "client_id": config.client_id,
         "client_secret": config.client_secret,
@@ -110,14 +74,14 @@ def handle_tokens(config):
     if "refresh_token" not in response:
         response["refresh_token"] = tokens["refresh_token"]
 
-    save_tokens(config.name, response)  
+    save_tokens(config.name, response)
     config.access_token = response["access_token"]
     config.refresh_token = response["refresh_token"]
     config.headers = generate_headers(config)
     return config
 
 
-# Wrapper for REST methods in the API file that checks for API request errors
+# Wrapper for REST methods that checks for API request errors
 def api_call(config, method, url, **kwargs):
     req = method(url, **kwargs)
     if req.status_code == 401:
