@@ -1,0 +1,8 @@
+Metadata-Version: 2.4
+Name: winston-shared
+Version: 1.0.0
+Summary: A housing for the authentication and modules used for the WinstonKittyBot twitch bot
+Author: Some cat guy
+Requires-Python: >=3.12
+Description-Content-Type: text/markdown
+Requires-Dist: requests>=2.33.1
