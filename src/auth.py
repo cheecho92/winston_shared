@@ -1,4 +1,3 @@
-#!/usr/bin/env python3.13
 import json
 import requests
 import os
@@ -19,14 +18,16 @@ def url_parser(config, state):
 
 # Read the token JSON file as dict
 def load_tokens(config):
-    with open(config.token_file, "r") as f:
+    token_dir = os.getenv('TOKEN_DIR')
+    with open(os.path.join(token_dir, config.token_file), "r") as f:
         tokens = json.load(f)
     return tokens
 
 
 # Save POST response to a JSON file
 def save_tokens(name, request_response):
-    with open(f"{name}_token.json", "w") as f:
+    token_dir = os.getenv('TOKEN_DIR')
+    with open(os.path.join(token_dir, f"{name}_token.json"), "w") as f:
         json.dump(request_response, f, indent=4)
 
 
@@ -47,9 +48,10 @@ def generate_headers(config):
     return params
 
 
-# Handles token refresh or initial token exchange
+# Handles the initial token generation and refresh tokens
 def handle_tokens(config, code=None):
-    if os.path.exists(config.token_file):
+    token_path = os.path.join(os.getenv('TOKEN_DIR'), config.token_file)
+    if os.path.exists(token_path):
         tokens = load_tokens(config)
         params = {
         "client_id": config.client_id,

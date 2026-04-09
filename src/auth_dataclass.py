@@ -1,8 +1,9 @@
 from dataclasses import dataclass
 
 '''
-datalcasses essentially just group variables and allow you to call them elsewhere using 
-config.value
+Config dataclass used by both winston_bot and flask_server via winston_shared.
+Bot instances use fields (channel, bot, api_uri etc.)
+Flask server uses OAuth fields (auth_uri, token_uri, redirect_uri etc.)
 '''
 
 @dataclass
@@ -13,17 +14,14 @@ class Config:
     auth_uri: str
     token_uri: str
     scopes: list
-    api_uri: str
-    browser: str
+    token_file: str
+    redirect_uri: str
+    content_type: dict
+    api_uri: str | None = None
     channel: str | None = None
     channel_name: str | None = None
     bot: str | None = None
-    token_file: str | None = None
-    host: str = "localhost"
-    port: int = 3000
     discord: str | None = None
     access_token: str | None = None
     refresh_token: str | None = None
-    redirect_uri: str = "http://localhost:3000"
-    content_type: dict | None = None
     headers: dict | None = None
