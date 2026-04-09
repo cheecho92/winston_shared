@@ -2,13 +2,16 @@
 
 [build-system]
 requires = ["setuptools"]
-build-backend = "setuptools.backends.legacy:build"
+build-backend = "setuptools.build_meta"
 
 [project]
-name = "Winston-Shared"
+name = "winston-shared"
 version = "1.0.0"
 description = "A housing for the authentication and modules used for the WinstonKittyBot twitch bot"
 readme = "README.md"
 authors = [{name = "Some cat guy"}]
 dependencies = ["requests >= 2.33.1"]
-requires-python = ">=3.13"
+requires-python = ">=3.12"
+
+[tool.setuptools.packages.find]
+where = ["src"]
