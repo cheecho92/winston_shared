@@ -1,6 +1,0 @@
-pyproject.toml
-src/winston_shared.egg-info/PKG-INFO
-src/winston_shared.egg-info/SOURCES.txt
-src/winston_shared.egg-info/dependency_links.txt
-src/winston_shared.egg-info/requires.txt
-src/winston_shared.egg-info/top_level.txt

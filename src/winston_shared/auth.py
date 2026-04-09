@@ -48,19 +48,9 @@ def generate_headers(config):
     return params
 
 
-# Handles the initial token generation and refresh tokens
-def handle_tokens(config, code=None):
-    token_path = os.path.join(os.getenv('TOKEN_DIR'), config.token_file)
-    if os.path.exists(token_path):
-        tokens = load_tokens(config)
-        params = {
-        "client_id": config.client_id,
-        "client_secret": config.client_secret,
-        "grant_type": "refresh_token",
-        "refresh_token": tokens["refresh_token"]
-        }
-    else:
-        params = {
+# Handle initial auth
+def exchange_code(config, code):
+    params = {
         "client_id": config.client_id,
         "client_secret": config.client_secret,
         "code": code,
@@ -71,12 +61,28 @@ def handle_tokens(config, code=None):
     encoded_params = urlencode(params)
     req = requests.post(config.token_uri, headers=config.content_type, data=encoded_params)
     req.raise_for_status()
+    return req.json()
+
+
+# Handles refresh tokens
+def handle_tokens(config):
+    tokens = load_tokens(config)
+    params = {
+    "client_id": config.client_id,
+    "client_secret": config.client_secret,
+    "grant_type": "refresh_token",
+    "refresh_token": tokens["refresh_token"]
+    }
+
+    encoded_params = urlencode(params)
+    req = requests.post(config.token_uri, headers=config.content_type, data=encoded_params)
+    req.raise_for_status()
     response = req.json()
 
     if "refresh_token" not in response:
         response["refresh_token"] = tokens["refresh_token"]
 
-    save_tokens(config.name, response)
+    save_tokens(config.channel_name, response)
     config.access_token = response["access_token"]
     config.refresh_token = response["refresh_token"]
     config.headers = generate_headers(config)
