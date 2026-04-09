@@ -1,11 +1,11 @@
 #!/usr/bin/env python3.13
 import requests
-from twitch_calls import chat_post
-from auth import api_call
+from winston_shared.twitch_calls import chat_post
+from winston_shared.auth import api_call
 
 
 # Retrieve the song link, name, and artist name
-def get_song_info(track_id, config, poster, twitch_config):
+def get_song_info(track_id, config, poster, twitch_config, message):
     track_id = track_id.split("?")[0]
     try:
         req = api_call(
@@ -23,14 +23,14 @@ def get_song_info(track_id, config, poster, twitch_config):
     
     except requests.exceptions.HTTPError as e:
         if e.response.status_code == 400:
-            chat_post(twitch_config, f"{poster}, please don't fuck with me. Use a valid spotify link.")
+            chat_post(twitch_config, message['spotify']['invalid_link'].format(poster=poster))
             raise ValueError("Invalid Spotify ID")
         else:
             raise
 
 
 # Add song to the queue
-def add_to_queue(song_uri, song_name, artist_name, spotify_config, poster, twitch_config):
+def add_to_queue(song_uri, song_name, artist_name, spotify_config, poster, twitch_config, message):
     try:
         req = api_call(
             spotify_config,
@@ -38,19 +38,17 @@ def add_to_queue(song_uri, song_name, artist_name, spotify_config, poster, twitc
             f"{spotify_config.api_uri}me/player/queue?uri={song_uri}",
             headers=spotify_config.headers
         )
-        message = f"@{poster}, {song_name} by {artist_name} has been added to the queue."
-        chat_post(twitch_config, message)
+        chat_post(twitch_config, message['spotify']['added_to_queue'].format(poster=poster, song_name=song_name, artist_name=artist_name))
 
     except requests.exceptions.HTTPError as e:
         if e.response.status_code == 404:
-            message = f"@{poster}, he doesn't want to listen to your music right now."
-            chat_post(twitch_config, message)
+            chat_post(twitch_config, message['spotify']['player_off'].format(poster=poster))
         else:
             raise
 
 
 # Display current song, or alert chatter than spotify isn't active
-def check_queue(poster, text, config, twitch_config):
+def check_queue(poster, text, config, twitch_config, message):
     req = api_call(
         config,
         requests.get,
@@ -63,17 +61,13 @@ def check_queue(poster, text, config, twitch_config):
         if text == "!song":
             song_name = response['currently_playing']['name']
             artist_name = response['currently_playing']['album']['artists'][0]['name']
-            message = f"@{poster}, the current song is '{song_name}' by {artist_name}."
-            chat_post(twitch_config, message)
+            chat_post(twitch_config, message['spotify']['current_song'].format(poster=poster, song_name=song_name, artist_name=artist_name))
         elif text == "!next":
             try:
                 song_name = response['queue'][0]['name']
                 artist_name = response['queue'][0]['album']['artists'][0]['name']
-                message = f"@{poster}, the next song is '{song_name}' by {artist_name}."
-                chat_post(twitch_config, message)
+                chat_post(twitch_config, message['spotify']['next_song'].format(poster=poster, song_name=song_name, artist_name=artist_name))
             except IndexError:
-                message = f"@{poster}, is the music in the room with us right now?"
-                chat_post(twitch_config, message)
+                chat_post(twitch_config, message['spotify']['no_queue'].format(poster=poster))
     else:
-        message = f"@{poster}, is the music in the room with us right now?"
-        chat_post(twitch_config, message)
+        chat_post(twitch_config, message['spotify']['player_inactive'].format(poster=poster))

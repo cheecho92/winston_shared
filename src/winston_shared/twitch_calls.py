@@ -1,7 +1,7 @@
 #!/usr/bin/env python3.13
 import requests
 import json
-from auth import api_call
+from winston_shared.auth import api_call
 
 
 EVENTSUB_TYPES = [
@@ -61,12 +61,12 @@ def chat_post(config, message):
 
 
 # Ban user. Intercept 400 (user cannot be banned) and 409 (someone else is banning the user) errors
-def ban_user(poster, config):
+def ban_user(poster, config, message):
     user_info = get_user_info(poster, config)
 
     # The streamer tried to ban themselves.
     if user_info is None:
-        chat_post(config, "Very funny. You're hilarious.")
+        chat_post(config, message['moderation']['self_ban'])
         return
     else:
         broadcaster_display_name, user_id, user_display_name = user_info
@@ -80,13 +80,13 @@ def ban_user(poster, config):
             json={'data': {'user_id': user_id}}
         )
 
-        chat_post(config, f"{user_display_name} get shit on you bot betch.")
+        chat_post(config, message['moderation']['ban_success'].format(user_display_name=user_display_name))
 
     except requests.exceptions.HTTPError as e:
         if e.response.status_code == 400:
-            chat_post(config, f"Oi, @{broadcaster_display_name}. I can't ban this @{user_display_name} bitch.")
+            chat_post(config, message['moderation']['ban_failed'].format(broadcaster_display_name=broadcaster_display_name, user_display_name=user_display_name))
         elif e.response.status_code == 409:
-            chat_post(config, f"@{broadcaster_display_name}, someone beat me to destroying @{user_display_name} >:|")
+            chat_post(config, message['moderation']['ban_conflict'].format(broadcaster_display_name=broadcaster_display_name, user_display_name=user_display_name))
         else:
             raise
 
