@@ -33,22 +33,21 @@ def save_tokens(name, request_response):
 
 # Generate the headers based on config profile
 def generate_headers(config):
-    if config.name == "twitch":
+    if config.api_uri and "twitch" in config.api_uri:
         params = {
-        'Authorization': f"Bearer {config.access_token}",
-        'Client-Id': config.client_id,
-        'Content-Type': 'application/json'
+            'Authorization': f"Bearer {config.access_token}",
+            'Client-Id': config.client_id,
+            'Content-Type': 'application/json'
         }
     else:
         params = {
-        'Authorization': f"Bearer {config.access_token}",
-        'Content-Type': 'application/json'
+            'Authorization': f"Bearer {config.access_token}",
+            'Content-Type': 'application/json'
         }
-    
     return params
 
 
-# Handle initial auth
+# Handle initial auth code exchange
 def exchange_code(config, code):
     params = {
         "client_id": config.client_id,
@@ -56,24 +55,22 @@ def exchange_code(config, code):
         "code": code,
         "grant_type": "authorization_code",
         "redirect_uri": config.redirect_uri,
-        }
-
+    }
     encoded_params = urlencode(params)
     req = requests.post(config.token_uri, headers=config.content_type, data=encoded_params)
     req.raise_for_status()
     return req.json()
 
 
-# Handles refresh tokens
+# Handles token refresh for any config object
 def handle_tokens(config):
     tokens = load_tokens(config)
     params = {
-    "client_id": config.client_id,
-    "client_secret": config.client_secret,
-    "grant_type": "refresh_token",
-    "refresh_token": tokens["refresh_token"]
+        "client_id": config.client_id,
+        "client_secret": config.client_secret,
+        "grant_type": "refresh_token",
+        "refresh_token": tokens["refresh_token"]
     }
-
     encoded_params = urlencode(params)
     req = requests.post(config.token_uri, headers=config.content_type, data=encoded_params)
     req.raise_for_status()
@@ -82,7 +79,7 @@ def handle_tokens(config):
     if "refresh_token" not in response:
         response["refresh_token"] = tokens["refresh_token"]
 
-    save_tokens(config.channel_name, response)
+    save_tokens(config.name, response)
     config.access_token = response["access_token"]
     config.refresh_token = response["refresh_token"]
     config.headers = generate_headers(config)

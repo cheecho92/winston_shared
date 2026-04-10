@@ -2,8 +2,8 @@ from dataclasses import dataclass
 
 '''
 Config dataclass used by both winston_bot and flask_server via winston_shared.
-Bot instances use fields (channel, bot, api_uri etc.)
-Flask server uses OAuth fields (auth_uri, token_uri, redirect_uri etc.)
+Each service (bot, broadcaster, spotify) gets its own Config object.
+Not all fields are used by every config — unused fields default to None.
 '''
 
 @dataclass
@@ -22,10 +22,6 @@ class Config:
     channel_name: str | None = None
     bot: str | None = None
     discord: str | None = None
-    spotify_client_id: str | None = None
-    spotify_client_secret: str | None = None
-    spotify_api_uri: str | None = None
-    spotify_redirect_uri: str | None = None
     access_token: str | None = None
     refresh_token: str | None = None
     headers: dict | None = None
