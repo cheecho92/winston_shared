@@ -21,5 +21,6 @@ cheehco = Config(
     content_type={'Content-Type': "application/x-www-form-urlencoded"},
     spotify_client_id=os.getenv("CHEEHCO_SPOTIFY_CLIENT_ID"),
     spotify_client_secret=os.getenv("CHEEHCO_SPOTIFY_SECRET"),
+    spotify_api_uri="https://api.spotify.com/v1/",
     spotify_redirect_uri=os.getenv("SPOTIFY_REDIRECT"),
 )

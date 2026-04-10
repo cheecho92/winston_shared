@@ -11,13 +11,13 @@ EVENTSUB_TYPES = [
 ]
 
 # List comprehension to build event subs dicts
-def build_eventsubs(config, session_id):
+def build_eventsubs(streamer, session_id):
     return [{
         'type': sub['type'],
         'version': sub['version'],
         'condition': {
-            'broadcaster_user_id': config.channel,
-            sub['condition_key']: config.bot
+            'broadcaster_user_id': streamer.channel,
+            sub['condition_key']: streamer.bot
         },
         'transport': {
             'method': 'websocket',
@@ -27,20 +27,20 @@ def build_eventsubs(config, session_id):
 
 
 # Gather the user information for broadcaster and poster
-def get_user_info(poster, config):
+def get_user_info(poster, streamer):
     req = api_call(
-        config, requests.get,
-        f"{config.api_uri}users?login={poster}&login={config.channel_name}",
-        headers=config.headers
+        streamer, requests.get,
+        f"{streamer.api_uri}users?login={poster}&login={streamer.channel_name}",
+        headers=streamer.headers
     )
-    
+
     response = req.json()
 
     if len(response['data']) == 1:
         return
-    
+
     users = {u['login']: u for u in response['data']}
-    broadcaster = users[config.channel_name]
+    broadcaster = users[streamer.channel_name]
     user = users[poster]
 
     broadcaster_display_name = broadcaster['display_name']
@@ -50,65 +50,60 @@ def get_user_info(poster, config):
 
 
 # function for twitch chat API post
-def chat_post(config, message):
+def chat_post(streamer, message):
     api_call(
-        config,
+        streamer,
         requests.post,
-        f"{config.api_uri}chat/messages",
-        headers=config.headers,
-        json={"broadcaster_id": config.channel, "sender_id": config.bot, "message": message}
+        f"{streamer.api_uri}chat/messages",
+        headers=streamer.headers,
+        json={"broadcaster_id": streamer.channel, "sender_id": streamer.bot, "message": message}
     )
 
 
 # Ban user. Intercept 400 (user cannot be banned) and 409 (someone else is banning the user) errors
-def ban_user(poster, config, message):
-    user_info = get_user_info(poster, config)
+def ban_user(poster, streamer, message):
+    user_info = get_user_info(poster, streamer)
 
     # The streamer tried to ban themselves.
     if user_info is None:
-        chat_post(config, message['moderation']['self_ban'])
+        chat_post(streamer, message['moderation']['self_ban'])
         return
     else:
         broadcaster_display_name, user_id, user_display_name = user_info
-        
+
     try:
         req = api_call(
-            config,
+            streamer,
             requests.post,
-            f"{config.api_uri}moderation/bans?broadcaster_id={config.channel}&moderator_id={config.bot}",
-            headers=config.headers,
+            f"{streamer.api_uri}moderation/bans?broadcaster_id={streamer.channel}&moderator_id={streamer.bot}",
+            headers=streamer.headers,
             json={'data': {'user_id': user_id}}
         )
 
-        chat_post(config, message['moderation']['ban_success'].format(user_display_name=user_display_name))
+        chat_post(streamer, message['moderation']['ban_success'].format(user_display_name=user_display_name))
 
     except requests.exceptions.HTTPError as e:
         if e.response.status_code == 400:
-            chat_post(config, message['moderation']['ban_failed'].format(broadcaster_display_name=broadcaster_display_name, user_display_name=user_display_name))
+            chat_post(streamer, message['moderation']['ban_failed'].format(broadcaster_display_name=broadcaster_display_name, user_display_name=user_display_name))
         elif e.response.status_code == 409:
-            chat_post(config, message['moderation']['ban_conflict'].format(broadcaster_display_name=broadcaster_display_name, user_display_name=user_display_name))
+            chat_post(streamer, message['moderation']['ban_conflict'].format(broadcaster_display_name=broadcaster_display_name, user_display_name=user_display_name))
         else:
             raise
 
 
-# monitor events and return their payload. This will handle the welcome message to subscribe to listed events.
-'''
-Might want to add a handle to check the message_id field. This could stop processing duplicate messages?
-
-Can maybe use the return value to check through the payload dict for the "type" using payload.values()?
-'''
-def eventsub_handler(config, event):
+# monitor events and return their payload
+def eventsub_handler(streamer, event):
     event = json.loads(event)
     payload = event['payload']
 
     if 'session' in payload:
         session_id = payload['session']['id']
-        for sub in build_eventsubs(config, session_id):
+        for sub in build_eventsubs(streamer, session_id):
             api_call(
-                config,
+                streamer,
                 requests.post,
-                f"{config.api_uri}eventsub/subscriptions",
-                headers=config.headers,
+                f"{streamer.api_uri}eventsub/subscriptions",
+                headers=streamer.headers,
                 json=sub
             )
     return event['payload']
@@ -123,13 +118,13 @@ def parse_payload(payload):
     if event_type == "channel.follow":
         follower = payload['event']['user_name']
         return event_type, follower, None, None
-    
+
     if event_type == "channel.suspicious_user.message":
         poster = payload['event']['user_name']
         return event_type, None, poster, None
-    
+
     poster = payload['event']['chatter_user_name']
-    text = payload ['event']['message']['text']
+    text = payload['event']['message']['text']
     if "https://open.spotify.com/track" not in text:
         text = text.lower()
     return event_type, None, poster, text
