@@ -1,25 +1,25 @@
 {
     "commands": {
-        "lurk": "@{poster}... Fine. I didn't want you here anyway... BigSad",
+        "lurk": "",
         "ket": "meow",
         "kappa": "Kappa",
-        "praise": "@{poster} thank meow veowy mooch :3",
-        "follow": "@{follower}, thanks for the follow!",
-        "discord": "Join the stream discord: {discord_link}"
+        "praise": "",
+        "follow": "",
+        "discord": ""
     },
     "spotify": {
-        "invalid_link": "{poster}, please don't fuck with me. Use a valid spotify link.",
-        "added_to_queue": "@{poster}, {song_name} by {artist_name} has been added to the queue.",
-        "player_inactive": "@{poster}, is the music in the room with us right now?",
-        "current_song": "@{poster}, the current song is '{song_name}' by {artist_name}.",
-        "next_song": "@{poster}, the next song is '{song_name}' by {artist_name}.",
-        "no_queue": "@{poster}, is the music in the room with us right now?",
-        "player_off": "@{poster}, he doesn't want to listen to your music right now."
+        "invalid_link": "",
+        "added_to_queue": "",
+        "player_inactive": "",
+        "current_song": "",
+        "next_song": "",
+        "no_queue": "",
+        "player_off": ""
     },
     "moderation": {
-        "ban_success": "{user_display_name} get shit on you bot betch.",
-        "ban_failed": "Oi, @{broadcaster_display_name}. I can't ban this @{user_display_name} bitch.",
-        "ban_conflict": "@{broadcaster_display_name}, someone beat me to destroying @{user_display_name} >:|",
-        "self_ban": "Very funny. You're hilarious."
+        "ban_success": "",
+        "ban_failed": "",
+        "ban_conflict": "",
+        "self_ban": ""
     }
 }

@@ -1,0 +1,25 @@
+{
+    "commands": {
+        "lurk": "@{poster}... is hiding in the bushes, taking notes ♡",
+        "ket": "meow",
+        "kappa": "Kappa",
+        "praise": "@{poster} thank meow veowy mooch :3",
+        "follow": "@{follower}, thank you for the follow! ILY SM♡",
+        "discord": "My Personal Discord♡: {DISCORD} "
+    },
+    "spotify": {
+        "invalid_link": "{poster}, TRY AGAIN with a full spotify track link.",
+        "added_to_queue": "@{poster}, {song_name} by {artist_name} has been added to the queue.",
+        "player_inactive": "@{poster}, is the music in the room with us right now?",
+        "current_song": "@{poster}, the current song is '{song_name}' by {artist_name}.",
+        "next_song": "@{poster}, the next song is '{song_name}' by {artist_name}.",
+        "no_queue": "@{poster}, is the music in the room with us right now?",
+        "player_off": "@{poster}, ask nicely and I might open Spotify."
+    },
+    "moderation": {
+        "ban_success": "{user_display_name} get shit on you bot betch.",
+        "ban_failed": "Oi, @{broadcaster_display_name}. I can't ban this @{user_display_name} bitch.",
+        "ban_conflict": "@{user_display_name} HA HA my shootas got you cupcak157YourDead",
+        "self_ban": "Very funny. You're hilarious."
+    }
+}
