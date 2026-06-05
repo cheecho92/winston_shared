@@ -1,27 +1,30 @@
-This is going to be a quick and dirty README for now.
+# winston_shared
 
-This is a twitch chat moderation bot for twitch.tv based off of my cat.
+Shared Python package used by the Winston Twitch bot. Contains the auth logic, config dataclasses, and token handling [`flask_server`](https://github.com/cheecho92/flask_server) and [`Winston_Bot`](https://github.com/cheecho92/Winston_Bot) use.
 
-This repo contains shared resources that will be universal to all channels this bot moderates.
+## What's in it
 
-# Classes 
+**`src/winston_shared/auth.py`** — Contains all logic for authentication. Builds authorization URLs, exchanges auth codes for tokens, handles token refresh on 401 responses, and reads/writes token JSON files.
 
-*Config* - a dataclass to hold information for authentication
+**`configs/`** — Config dataclasses for Twitch and Spotify, holding client credentials, redirect URIs, and headers used across both services.
 
-*RedirectHandler* - info to handle internal GET call on temp HTTP server
+**`tokens/`** — Where access and refresh tokens are stored after a successful auth flow. Keyed by channel name for twitch. The spotify token will need to be manually edited, because I got lazy. (e.g. `<channel>_twitch.json`, `<manual_edit>_spotify.json`).
+
+## Install
+
+This is a local package. Install it into your other services with pip:
+
+```bash
+pip install -e /path/to/winston_shared
+```
 
 
-# Authentication
+## Requirements
 
-oAuth is handled by auth.py. It uses the dataclass data to create the oAuth link, and stands up a temp local HTTP server to handle the redirect URL and retrieve the code needed for the final POST call. Finally, the handle_tokens function is called. This will check to see if an existing json file with token information is available. If it is not, it will proceed with the POST to the twitch token uri, and use the response to generate the token. 
+- Python >= 3.12
+- `requests >= 2.33.1`
 
-I included the api_call function here. This functions purpose is to wrap any method with error handling for any 401 responses. If a 401 is generated, the function will call handle_tokens and use the refresh code to update the token json.
+## Related
 
-
-# Method Files
-
-There are two method files. twitch_calls.py and spotify_calls.py. These contain all functions needed to handle any twitch and spotify API interaction.
-
-# Websocket connection
-
-websocket_monitor.py contains the build of the logic for this bot. It connections to twitchs event subscriptions using pythons websocket library. After listen_twitch is called the websocket connection is formed with async for a consistent monitor. The payload is extracted from events, parsed for data needed, and fed to the connections logic. 
+- [`flask_server`](https://github.com/cheecho92/flask_server) — OAuth server that uses this package to handle auth flows and save tokens
+- [`Winston_Bot`](https://github.com/cheecho92/Winston_Bot) — the bot that handles the tokens generated and contains the chat moderation logic
